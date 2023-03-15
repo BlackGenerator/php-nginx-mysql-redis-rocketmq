@@ -1,0 +1,145 @@
+version: '3.5'
+services:
+  nginx:
+    build: ./nginx
+    container_name: lnmp-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - "./nginx/logs:/var/log/nginx"
+      - "./nginx/socket:/var/run"
+      - "./workshop:/var/www/html"
+    links:
+      - php-fpm:php-fpm
+    networks:
+      web_server_network:
+        aliases:
+          - nginx
+        ipv4_address: ${NGINX_WEB_SERVER_IP}
+
+  ### PHP-FPM Container #######################################
+
+  php-fpm:
+    build: ./php
+    container_name: lnmp-php-fpm
+    volumes:
+      - "./nginx/logs/php-fpm:/usr/local/var/log/php7"
+      - "./nginx/socket:/var/run"
+      - "./workshop:/var/www/html"
+    links:
+      - mysql
+      - redis
+    env_file:
+      - .env
+    networks:
+      web_server_network:
+        aliases:
+          - phpFpm
+
+  workshop:
+    build: ./workshop
+    container_name: lnmp-workshop
+    volumes:
+      - "./workshop:/var/www/html"
+    networks:
+      web_server_network:
+        aliases:
+          - workshop
+
+  ### mySQL Container #######################################
+
+  mysql:
+    image: mysql:5.7-debian
+    container_name: lnmp-mysql
+    ports:
+      - "3306:3306"
+    volumes:
+      # NOTE: your data will be stored in ./mysql
+      - ./mysql/data/mysql:/var/lib/mysql
+    environment:
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+    env_file:
+      - .env
+    networks:
+      web_server_network:
+        aliases:
+          - mysql
+
+  ### REDIS Container #######################################
+  redis:
+    build: ./redis
+    container_name: lnmp-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - "./redis/data:/data"
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    env_file:
+      - .env
+    networks:
+      web_server_network:
+        aliases:
+          - redis
+
+  rmqnamesrv:
+    image: foxiswho/rocketmq:server
+    container_name: rmqnamesrv
+    ports:
+      - "9876:9876"
+    volumes:
+      - ./rocketmq/data/logs:/opt/logs
+      - ./rocketmq/data/logs:/opt/store
+    networks:
+      web_server_network:
+        aliases:
+          - rmqnamesrv
+
+  rmqbroker:
+    image: foxiswho/rocketmq:broker
+    container_name: rmqbroker
+    ports:
+      - "10909:10909"
+      - "10911:10911"
+    volumes:
+      - ./rocketmq/data/logs:/opt/logs
+      - ./rocketmq/data/store:/opt/store
+      - ./rocketmq/data/brokerconf/broker.conf:/etc/rocketmq/broker.conf
+    environment:
+      NAMESRV_ADDR: "rmqnamesrv:9876"
+      JAVA_OPTS: " -Duser.home=/opt"
+      JAVA_OPT_EXT: "-server -Xms128m -Xmx128m -Xmn128m"
+    command: mqbroker -c /etc/rocketmq/broker.conf
+    depends_on:
+      - rmqnamesrv
+    networks:
+      web_server_network:
+        aliases:
+          - rmqbroker
+
+  rmqconsole:
+    image: styletang/rocketmq-console-ng
+    container_name: rmqconsole
+    ports:
+      - "18080:8080"
+    environment:
+      JAVA_OPTS: "-Drocketmq.namesrv.addr=rmqnamesrv:9876 -Dcom.rocketmq.sendMessageWithVIPChannel=false"
+    depends_on:
+      - rmqnamesrv
+    networks:
+      web_server_network:
+        aliases:
+          - rmqconsole
+
+### Networks Setup ############################################
+networks:
+  web_server_network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: "${WEB_SERVER_SUBNET}"
