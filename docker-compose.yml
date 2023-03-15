@@ -38,7 +38,7 @@ services:
           - phpFpm
 
   workshop:
-    build: ./workshop
+    build: ./tool
     container_name: lnmp-workshop
     volumes:
       - "./workshop:/var/www/html"

@@ -9,6 +9,8 @@ RUN composer config -g repo.packagist composer "https://mirrors.aliyun.com/compo
 
 RUN cp /etc/apt/sources.list /etc/apt/sources.list.bak
 
+RUN cat /dev/null > /etc/apt/sources.list
+
 RUN echo 'deb https://mirrors.zju.edu.cn/debian/ bullseye main contrib non-free \
     deb https://mirrors.zju.edu.cn/debian/ bullseye-updates main contrib non-free \
     deb https://mirrors.zju.edu.cn/debian/ bullseye-backports main contrib non-free \
