@@ -1,4 +1,5 @@
 .env
 /mysql/data/
 /redis/data/
-/rocketmq/data/
+/rocketmq/data/logs
+/rocketmq/data/store
