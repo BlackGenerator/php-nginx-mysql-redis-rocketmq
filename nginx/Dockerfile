@@ -1,4 +1,4 @@
-FROM nginx:latest
+FROM nginx:mainline-alpine-slim
 
 RUN mkdir -p /etc/nginx/cert \
 	&& mkdir -p /etc/nginx/conf.d
