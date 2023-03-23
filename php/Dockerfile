@@ -1,4 +1,4 @@
-FROM php:7.4-fpm
+FROM php:8-fpm
 
 #RUN pecl install redis-5.1.1 \
 #    pecl install xdebug-2.8.1 \
@@ -20,7 +20,8 @@ COPY sources.list /etc/apt/sources.list
 #    deb https://mirrors.zju.edu.cn/debian-security bullseye-security main contrib non-free' >> /etc/apt/sources.list
 
 COPY --from=mlocati/php-extension-installer /usr/bin/install-php-extensions /usr/local/bin/
-RUN install-php-extensions gd zip bz2 opcache \
+RUN install-php-extensions zip bz2 opcache \
+#    gd \
 #    xlswriter  \
 #    zstd lzf igbinary redis \
 #    amqp
