@@ -47,15 +47,15 @@ services:
   #        aliases:
   #          - nodejs
 
-  workshop:
-    build: ./tool
-    container_name: lnmp-workshop
-    volumes:
-      - "./workshop:/var/www/html"
-    networks:
-      web_server_network:
-        aliases:
-          - workshop
+  #  workshop:
+  #    build: ./tool
+  #    container_name: lnmp-workshop
+  #    volumes:
+  #      - "./workshop:/var/www/html"
+  #    networks:
+  #      web_server_network:
+  #        aliases:
+  #          - workshop
 
   ### mySQL Container #######################################
 
@@ -81,20 +81,31 @@ services:
 
   ### REDIS Container #######################################
   redis:
-    build: ./redis
+    # build: ./redis
+    image: redis:latest
     container_name: lnmp-redis
     ports:
       - "6379:6379"
     volumes:
       - "./redis/data:/data"
-    environment:
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
-    env_file:
-      - .env
+    # environment:
+    #   - REDIS_PASSWORD=${REDIS_PASSWORD}
+    # env_file:
+    #   - .env
     networks:
       web_server_network:
         aliases:
           - redis
+
+
+          #  memcached:
+          #   image: memcached:latest
+          #   networks:
+          #     web_server_network:
+          #       aliases:
+          #         - memcached
+
+
 
 #  rmqnamesrv:
 #    image: foxiswho/rocketmq:server
